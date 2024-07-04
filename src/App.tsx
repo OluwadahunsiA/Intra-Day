@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
-import { data } from './data';
 
 import 'chart.js/auto';
 import { ChartOptions } from 'chart.js';
@@ -16,39 +15,45 @@ function App() {
   const [chartData, setChartData] = useState<RawDataType[] | null>(null);
 
   const fetchData = async () => {
-    // const response = await fetch(
-    //   `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=${`RIBXT3XYLI69PC0Q`}`
-    // );
+    try {
+      const response = await fetch(
+        `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=${
+          import.meta.env.VITE_API_KEY
+        }`
+      );
 
-    // const data = await response.json();
+      const data = await response.json();
 
-    const obj: RawDataType = data['Time Series (5min)'];
+      const obj: RawDataType = data['Time Series (5min)'];
 
-    const responseArray = Array.from(Object.keys(obj), (key: string) => {
-      //extract time from the object key
-      const keyValue = key.split(' ')[1];
+      const responseArray = Array.from(Object.keys(obj), (key: string) => {
+        //extract time from the object key
+        const keyValue = key.split(' ')[1];
 
-      //extract the nested object
-      const rawPropertyValue = obj[key];
+        //extract the nested object
+        const rawPropertyValue = obj[key];
 
-      const objectKeys = Object.keys(rawPropertyValue);
+        const objectKeys = Object.keys(rawPropertyValue);
 
-      // remove numbers from the nested object keys
+        // remove numbers from the nested object keys
 
-      const editedObject = {
-        [objectKeys[0].split(' ')[1]]: rawPropertyValue[objectKeys[0]],
-        [objectKeys[1].split(' ')[1]]: rawPropertyValue[objectKeys[1]],
-        [objectKeys[2].split(' ')[1]]: rawPropertyValue[objectKeys[2]],
-        [objectKeys[3].split(' ')[1]]: rawPropertyValue[objectKeys[3]],
-        [objectKeys[4].split(' ')[1]]: rawPropertyValue[objectKeys[4]],
-      };
+        const editedObject = {
+          [objectKeys[0].split(' ')[1]]: rawPropertyValue[objectKeys[0]],
+          [objectKeys[1].split(' ')[1]]: rawPropertyValue[objectKeys[1]],
+          [objectKeys[2].split(' ')[1]]: rawPropertyValue[objectKeys[2]],
+          [objectKeys[3].split(' ')[1]]: rawPropertyValue[objectKeys[3]],
+          [objectKeys[4].split(' ')[1]]: rawPropertyValue[objectKeys[4]],
+        };
 
-      //return formatted object
+        //return formatted object
 
-      return { [keyValue]: editedObject };
-    });
+        return { [keyValue]: editedObject };
+      });
 
-    setChartData(responseArray);
+      setChartData(responseArray);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   useEffect(() => {
