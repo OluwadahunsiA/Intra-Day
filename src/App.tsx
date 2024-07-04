@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
+import { Chart } from './components/Chart';
 
-import 'chart.js/auto';
-import { ChartOptions } from 'chart.js';
 import './App.css';
 
 type RawDataType = {
@@ -11,18 +9,26 @@ type RawDataType = {
   };
 };
 
+type MetaDataType = {
+  [key: string]: string;
+};
+
 function App() {
   const [chartData, setChartData] = useState<RawDataType[] | null>(null);
+  const [metaData, setMetaData] = useState<MetaDataType | null>(null);
 
   const fetchData = async () => {
     try {
       const response = await fetch(
         `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=${
-          import.meta.env.VITE_API_KEY
+          import.meta.env.VITE_API_KEY || 'RIBXT3XYLI69PC0Q'
         }`
       );
-
       const data = await response.json();
+
+      const metaData = data['Meta Data'];
+
+      console.log(metaData);
 
       const obj: RawDataType = data['Time Series (5min)'];
 
@@ -51,6 +57,7 @@ function App() {
       });
 
       setChartData(responseArray);
+      setMetaData(metaData);
     } catch (e) {
       console.log(e);
     }
@@ -60,34 +67,8 @@ function App() {
     fetchData();
   }, []);
 
-  const options: ChartOptions<'line'> = {
-    responsive: true,
-    elements: {
-      line: {
-        tension: 0.4,
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-      },
-      x: {
-        grid: {
-          display: false,
-        },
-      },
-    },
-    maintainAspectRatio: true,
-  };
-
   const extractChartValue = (property: string) => {
     return chartData?.map((entry) => {
-      console.log(entry);
       const value = Object.values(entry)[0][property];
 
       return value;
@@ -157,15 +138,24 @@ function App() {
 
   return (
     <>
-      <h1>Open And Close Data</h1>
-      <Line data={openAndCloseData} options={options} />
+      <h1 className='flex justify-center mt-5 text-light-blue font-bold font-50px text-3xl'>
+        TIME SERIES INTRADAY CHARTS
+      </h1>
 
-      <h1>High And Low Data</h1>
+      <div className='flex justify-center mt-10'>
+        <h2 className='text-xl'>
+          <span className='font-bold  '>Last Refreshed:</span>
+          {metaData && metaData['3. Last Refreshed']}
+        </h2>
+      </div>
 
-      <Line data={highAndLowData} options={options} />
+      <div className=' m-10'>
+        <Chart title='Open And Close Data' data={openAndCloseData} />
 
-      <h1>Volume Data</h1>
-      <Line data={volumeData} options={options} />
+        <Chart title='High And Low Data' data={highAndLowData} />
+
+        <Chart title='Volume ' data={volumeData} />
+      </div>
     </>
   );
 }
